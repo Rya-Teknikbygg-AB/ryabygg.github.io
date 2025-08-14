@@ -126,9 +126,12 @@ img.logo {
     text-align: center;
 }
 
+.contact-section div {
+    margin-bottom: 2rem;
+}
+
 .contact-section h2 {
     font-size: 2.5rem;
-    margin-bottom: 2rem;
     color: var(--primary-color);
 }
 
