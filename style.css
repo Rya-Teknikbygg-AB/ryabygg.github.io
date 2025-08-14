@@ -253,8 +253,8 @@ img.logo {
   border-radius: 16px;
   object-fit: cover;
   /* Optional sizing examples: pick one (or your own) */
-   width: clamp(260px, 45vw, 520px); aspect-ratio: 3 / 2; 
-  /* height: 260px; width: auto; */
+   width: clamp(260px, 45vw, 520px); 
+  height: 260px; width: auto;
 }
 
 /* The animation moves exactly one full set width left, then loops */
