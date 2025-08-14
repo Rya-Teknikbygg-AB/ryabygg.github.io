@@ -48,26 +48,14 @@
             
         <section class="showcase" aria-label="Project showcase">
             <div class="carousel">
-                <div class="group">
-                    <img class="card" src="images/3.jpg"/>
-                    <img class="card" src="images/4.jpg"/>
-                    <img class="card" src="images/5.jpg"/>
-                    <img class="card" src="images/6.jpg"/>
-                    <img class="card" src="images/7.jpg"/>
-                    <img class="card" src="images/8.jpg"/>
-                    <img class="card" src="images/9.jpg"/>
-                    <img class="card" src="images/10.jpg"/>
-                </div>
-                <div aria-hidden class="group">
-                    <img class="card" src="images/3.jpg"/>
-                    <img class="card" src="images/4.jpg"/>
-                    <img class="card" src="images/5.jpg"/>
-                    <img class="card" src="images/6.jpg"/>
-                    <img class="card" src="images/7.jpg"/>
-                    <img class="card" src="images/8.jpg"/>
-                    <img class="card" src="images/9.jpg"/>
-                    <img class="card" src="images/10.jpg"/>
-                </div>
+                <img class="carousel-slide" src="images/3.jpg"/>
+                <img class="carousel-slide" src="images/4.jpg"/>
+                <img class="carousel-slide" src="images/5.jpg"/>
+                <img class="carousel-slide" src="images/6.jpg"/>
+                <img class="carousel-slide" src="images/7.jpg"/>
+                <img class="carousel-slide" src="images/8.jpg"/>
+                <img class="carousel-slide" src="images/9.jpg"/>
+                <img class="carousel-slide" src="images/10.jpg"/>
             </div>
         </section>
         <section class="contact-section">
@@ -98,6 +86,95 @@
         <p>&copy; 2025 Rya Teknikbygg AB</p>
     </footer>
 
+    <script>
+(() => {
+  // Initialize every ".carousel" on the page
+  document.addEventListener('DOMContentLoaded', () =>
+    initSeamlessCarousel('.carousel', { speed: 100, gap: 16 }) // speed in px/sec
+  );
+
+  // Expose globally if you want to call it yourself later
+  window.initSeamlessCarousel = initSeamlessCarousel;
+
+  function initSeamlessCarousel(selector = '.carousel', opts = {}) {
+    const speed = opts.speed ?? 100; // px/s
+    const gap   = opts.gap   ?? 16;
+
+    document.querySelectorAll(selector).forEach(container => {
+      if (container.dataset.seamlessReady === '1') return;
+      const originals = Array.from(container.querySelectorAll('.carousel-slide'));
+      if (originals.length < 2) return; // nothing to loop
+
+      container.dataset.seamlessReady = '1';
+      container.style.setProperty('--gap', `${gap}px`);
+
+      // Create the moving track and move original slides into it
+      const track = document.createElement('div');
+      track.className = 'carousel__track';
+      originals.forEach(s => track.appendChild(s));
+      container.appendChild(track);
+
+      // Wait for images to be measurable
+      const imgs = Array.from(track.querySelectorAll('img'));
+      const ready = Promise.all(imgs.map(img => waitForImage(img)));
+
+      ready.then(() => {
+        // Measure width of one full set BEFORE cloning
+        const oneSetWidth = track.scrollWidth;
+
+        // Clone the set once to make a seamless loop
+        const clones = Array.from(track.children).map(node => {
+          const c = node.cloneNode(true);
+          c.setAttribute('data-clone', '');
+          // keep clones out of the a11y tree
+          c.setAttribute('aria-hidden', 'true');
+          c.tabIndex = -1;
+          return c;
+        });
+        clones.forEach(c => track.appendChild(c));
+
+        // Configure animation distance + duration
+        const distance = Math.ceil(oneSetWidth); // px
+        const duration = distance / speed;       // seconds
+        container.style.setProperty('--distance', `${distance}px`);
+        container.style.setProperty('--duration', `${duration}s`);
+
+        // Recalculate on resize (debounced)
+        let raf;
+        const onResize = () => {
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(() => {
+            // After clones exist, total width is ~2x one set
+            const total = track.scrollWidth;
+            const firstSet = Math.round(total / 2);
+            const newDistance = firstSet;
+            const newDuration = newDistance / speed;
+            container.style.setProperty('--distance', `${newDistance}px`);
+            container.style.setProperty('--duration', `${newDuration}s`);
+          });
+        };
+        window.addEventListener('resize', onResize);
+
+        // Respect reduced motion dynamically
+        const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const applyMotionPref = () => {
+          track.style.animationPlayState = mql.matches ? 'paused' : 'running';
+        };
+        mql.addEventListener?.('change', applyMotionPref);
+        applyMotionPref();
+
+        // Pause on hover is handled by CSS; nothing else needed.
+      });
+    });
+  }
+
+  function waitForImage(img) {
+    if (img.decode) return img.decode().catch(() => {});
+    if (img.complete) return Promise.resolve();
+    return new Promise(res => img.addEventListener('load', res, { once: true }));
+  }
+})();
+</script>
 </body>
 
 </html>

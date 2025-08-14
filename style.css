@@ -219,43 +219,45 @@ img.logo {
         width: 100%;
     }
 }
- .carousel {
-    margin: 0 auto;
-    padding: 20px 0;
-    max-width: 100%;
-    overflow: hidden;
-    display: flex;
-        > * {
-      flex: 0 0 100%;
-    }
 
-     &:hover .group {
-      animation-play-state: paused;
-    }
-  }
+/* Viewport */
+.carousel {
+  position: relative;
+  overflow: hidden;
+  background: #f4f4f4;
+}
 
-  .card {
-    width: 300px;
-    color: white;
-    border-radius: 24px;
-    box-shadow: rgba(0, 0, 0, 10%) 5px 5px 20px 0;
-    justify-content: center;
-    align-items: center;
-  }
+/* The moving rail (JS will create this wrapper) */
+.carousel__track {
+  display: flex;
+  gap: var(--gap, 16px);
+  will-change: transform;
+  transform: translate3d(0,0,0);
+  animation: carousel-scroll linear infinite;
+  animation-duration: var(--duration, 30s);
+}
 
-    .group {
-        display: flex;
-    gap: 20px;
-    padding-right: 20px;
-    will-change: transform; 
-    animation: scrolling 20s linear infinite;
-  }
+/* Pause on hover */
+.carousel:hover .carousel__track {
+  animation-play-state: paused;
+}
 
-  @keyframes scrolling {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-100%);
-    }
-  }
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .carousel__track { animation: none; }
+}
+
+/* Slides sit side-by-side; size as you like */
+.carousel .carousel-slide {
+  flex: 0 0 auto;
+  border-radius: 16px;
+  object-fit: cover;
+  /* Optional sizing examples: pick one (or your own) */
+   width: clamp(260px, 45vw, 520px); aspect-ratio: 3 / 2; 
+  /* height: 260px; width: auto; */
+}
+
+/* The animation moves exactly one full set width left, then loops */
+@keyframes carousel-scroll {
+  to { transform: translate3d(calc(-1 * var(--distance, 0px)), 0, 0); }
+}
